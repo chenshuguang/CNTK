@@ -479,7 +479,6 @@ RENAME_AND_MAKE_PRIVATE(CNTK::Function, Clone);
 %rename (evaluate) CNTK::Function::Evaluate;
 %rename (setName) CNTK::Function::SetName;
 %rename (findByName) CNTK::Function::FindByName;
-%rename (findAllWithName) CNTK::Function::FindAllWithName;
 %rename (blockRoot) CNTK::Function::BlockRoot;
 %rename (save) CNTK::Function::Save;
 %rename (restore) CNTK::Function::Restore;

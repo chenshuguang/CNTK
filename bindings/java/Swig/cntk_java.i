@@ -113,9 +113,11 @@
     private VariableVector argumentVector;
     private VariableVector outputVector;
     private VariableVector inputVector;
+    private FunctionPtrVector functionVector;
     private java.util.ArrayList<Variable> argumentList;
     private java.util.ArrayList<Variable> outputList;
     private java.util.ArrayList<Variable> inputList;
+    private java.util.ArrayList<Function> functionList;
 
     private UnorderedMapVariableValuePtr outMap = new UnorderedMapVariableValuePtr();
 
@@ -150,6 +152,17 @@
             }
         }
         return argumentList;
+    }
+
+    public java.util.List<Function> findAllWithName(String x) {
+        if (functionVector == null) {
+            functionVector = _FindAllWithName(x);
+            functionList = new java.util.ArrayList<Function>((int)functionVector.size());
+            for (int i = 0; i < functionVector.size(); ++i){
+                functionList.add(functionVector.get(i));
+            }
+        }
+        return functionList;
     }
 
     public boolean isComposite() {
