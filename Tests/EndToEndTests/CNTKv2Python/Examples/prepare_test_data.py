@@ -91,6 +91,7 @@ def prepare_Grocery_data():
 
     return base_path
 
+
 def prepare_fastrcnn_grocery_100_model():
     base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              *"../../../../Examples/Image/PretrainedModels".split("/"))
@@ -145,22 +146,6 @@ def prepare_animals_data():
     dst_file = "Examples/Image/DataSets/Animals/Animals.zip"
     
     _data_copier([src_file], [dst_file])
-
-def prepare_animals_data_unzipped(ds_path):
-    base_path = os.path.normpath(os.path.join(ds_path, "Animals"))
-
-    if not os.path.isfile(os.path.join(base_path, 'Test', 'Weaver_bird.jpg')):
-        # copy from backup location
-        base_path_bak = os.path.join(os.environ[envvar],
-                                     *"Image/Animals".split("/"))
-        base_path_bak = os.path.normpath(base_path_bak)
-
-        zip_path = os.path.join(base_path, '..', 'Animals.zip')
-        copyfile(os.path.join(base_path_bak, 'Animals.zip'), zip_path)
-        with zipfile.ZipFile(zip_path) as myzip:
-            myzip.extractall(os.path.join(base_path, '..'))
-
-    return base_path
 
 def prepare_alexnet_v0_model():
     local_base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),

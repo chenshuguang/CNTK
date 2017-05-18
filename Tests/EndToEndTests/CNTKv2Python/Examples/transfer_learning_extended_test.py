@@ -18,10 +18,9 @@ from cntk.ops.tests.ops_test_utils import cntk_device
 abs_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(abs_path)
 sys.path.append(os.path.join(abs_path, "..", "..", "..", "..", "Examples", "Image", "TransferLearning"))
-from prepare_test_data import prepare_animals_data_unzipped
 from TransferLearning_Extended import train_and_eval
 
-TOLERANCE_ABSOLUTE = 2E-2
+TOLERANCE_ABSOLUTE = 1E-1
 
 def test_transfer_learning(device_id):
     if cntk_device(device_id).type() != DeviceKind_GPU:
@@ -34,10 +33,11 @@ def test_transfer_learning(device_id):
         extPath = os.environ['CNTK_EXTERNAL_TESTDATA_SOURCE_DIRECTORY']
         print("Reading data and model from %s" % extPath)
         model_file = os.path.join(extPath, *"PreTrainedModels/ResNet/v1/ResNet_18.model".split("/"))
+        animals_path = os.path.join(extPath, "Image", "Animals")
     else:
         model_file = os.path.join(base_path, *"../../../../Examples/Image/PretrainedModels/ResNet_18.model".split("/"))
+        animals_path = os.path.join(base_path, *"../../../../Examples/Image/DataSets/Animals".split("/"))
 
-    animals_path = prepare_animals_data_unzipped(os.path.join(extPath, "Image"))
     train_image_folder = os.path.join(animals_path, "Train")
     test_image_folder = os.path.join(animals_path, "Test")
     output_file = os.path.join(base_path, "tl_extended_output.txt")

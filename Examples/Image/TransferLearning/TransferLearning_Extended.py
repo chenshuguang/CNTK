@@ -59,7 +59,7 @@ def format_output_line(img_name, true_class, probs, class_mapping, top_n=3):
     line = '[{"class": "%s", "predictions": {' % true_class_name
     for i in range(0, top_n):
         line = '%s"%s":%.3f, ' % (line, class_probs[i][1], float(class_probs[i][0]))
-    line = '%s}, "image": "%s"}]\n' % (line[:-2], img_name.replace('\\', '/'))
+    line = '%s}, "image": "%s"}]\n' % (line[:-2], img_name.replace('\\', '/').rsplit('/', 1)[1])
     return line
 
 def train_and_eval(_base_model_file, _train_image_folder, _test_image_folder, _results_file, _new_model_file, testing = False):
