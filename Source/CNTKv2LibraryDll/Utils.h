@@ -678,6 +678,7 @@ namespace CNTK
         void CheckDistributedLearners();
 
         std::vector<LearnerPtr> m_learners;
+        std::vector<MinibatchInfo> m_mbInfoPerLearner;
         bool m_isDistributed;
     };
 

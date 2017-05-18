@@ -994,14 +994,36 @@ namespace CNTK
 
     bool Learners::Update(std::unordered_map<Parameter, NDArrayViewPtr>& gradientValues, MinibatchInfo& minibatch)
     {
+        m_mbInfoPerLearner.resize(m_learners.size());
+
         bool anyUpdatesPerformed = false;
-        for (auto l : m_learners)
+        for (size_t i = 0; i < m_learners.size(); i++)
         {
+            auto l  = m_learners[i];
+            m_mbInfoPerLearner[i] = minibatch;
+
             auto learner = dynamic_pointer_cast<DistributedLearner>(l);
+            assert(learner != nullptr); // Already checked in the constructor.
+
             std::unordered_map<Parameter, NDArrayViewPtr> learnerGradients;
             GetLearnerGradients(learner, gradientValues, learnerGradients);
             anyUpdatesPerformed |= learner->Update(learnerGradients, minibatch);
         }
+
+        minibatch = m_mbInfoPerLearner.front();
+
+        // Checking that progress on the global timeline performed equally.
+        // This will currently prohibit usage of BlockMomentum with Simple/1Bit,
+        // but 1Bit and Simple can be used together.
+        for (size_t i = 1; i < m_mbInfoPerLearner.size(); i++)
+        {
+            auto mbInfo = m_mbInfoPerLearner[i];
+            if (minibatch.numberOfSamples != mbInfo.numberOfSamples)
+                RuntimeError("Combining distributed learners with different methods"
+                    " for aggregation minibatch sample count is currently not supported");
+        }
+        m_mbInfoPerLearner.clear();
+
         return anyUpdatesPerformed;
     }
 
