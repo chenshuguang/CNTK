@@ -103,6 +103,10 @@
 
 
 %typemap(javacode) CNTK::Function %{
+    private FunctionPtrVector ref;
+    public void addReference(FunctionPtrVector fpv) {
+        ref = fpv;
+    }
 
     public static Function load(byte[] modelBuffer, DeviceDescriptor computeDevice)
     {
@@ -113,7 +117,9 @@
         VariableVector inputVector = _Inputs();
         java.util.ArrayList<Variable> inputList = new java.util.ArrayList<Variable>((int)inputVector.size());
         for (int i = 0; i < inputVector.size(); ++i){
-            inputList.add(inputVector.get(i));
+            Variable var = inputVector.get(i);
+            var.addReference(inputVector);
+            inputList.add(var);
         }
         return inputList;
     }
@@ -122,7 +128,9 @@
         VariableVector outputVector = _Outputs();
         java.util.ArrayList<Variable> outputList = new java.util.ArrayList<Variable>((int)outputVector.size());
         for (int i = 0; i < outputVector.size(); ++i){
-            outputList.add(outputVector.get(i));
+            Variable var = outputVector.get(i);
+            var.addReference(outputVector);
+            outputList.add(var);
         }
         return outputList;
     }
@@ -131,7 +139,9 @@
         VariableVector argumentVector = _Arguments();
         java.util.ArrayList<Variable> argumentList = new java.util.ArrayList<Variable>((int)argumentVector.size());
         for (int i = 0; i < argumentVector.size(); ++i){
-            argumentList.add(argumentVector.get(i));
+            Variable var = argumentVector.get(i);
+            var.addReference(argumentVector);
+            argumentList.add(var);
         }
         return argumentList;
     }
@@ -140,7 +150,9 @@
         FunctionPtrVector functionVector = _FindAllWithName(x);
         java.util.ArrayList<Function> functionList = new java.util.ArrayList<Function>((int)functionVector.size());
         for (int i = 0; i < functionVector.size(); ++i){
-            functionList.add(functionVector.get(i));
+            Function func = functionVector.get(i);
+            func.addReference(functionVector);
+            functionList.add(func);
         }
         return functionList;
     }
@@ -172,6 +184,10 @@
 %}
 
 %typemap(javacode) CNTK::Variable %{
+    private VariableVector ref;
+    public void addReference(VariableVector vv) {
+        ref = vv;
+    }
 
     public AxisVector getDynamicAxes() {
         return _DynamicAxes();
@@ -235,10 +251,11 @@
         return _HasFreeDimension();
     }
 
-    public java.util.ArrayList<Long> getDimensions(){
-        java.util.ArrayList<Long> ret = new java.util.ArrayList<Long>((int)getRank());
-        for (int i = 0; i < _Dimensions().size(); ++i ) {
-            ret.add((Long)_Dimensions().get(i));
+    public long[] getDimensions(){
+        SizeTVector dimensionVector = _Dimensions();
+        long[] ret = new long[(int)getRank()];
+        for (int i = 0; i < dimensionVector.size(); ++i ) {
+            ret[i] = dimensionVector.get(i);
         }
         return ret;
     }
