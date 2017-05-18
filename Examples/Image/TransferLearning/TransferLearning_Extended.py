@@ -14,7 +14,6 @@ from TransferLearning import *
 # define base model location and characteristics
 base_folder = os.path.dirname(os.path.abspath(__file__))
 base_model_file = os.path.join(base_folder, "..", "PretrainedModels", "ResNet_18.model")
-new_model_file = os.path.join(base_folder, "Output", "TransferLearning.model")
 feature_node_name = "features"
 last_hidden_node_name = "z.x"
 image_height = 224
@@ -25,7 +24,6 @@ num_channels = 3
 train_image_folder = os.path.join(base_folder, "..", "DataSets", "Animals", "Train")
 test_image_folder = os.path.join(base_folder, "..", "DataSets", "Animals", "Test")
 file_endings = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG']
-
 
 def create_map_file_from_folder(root_folder, class_mapping, include_unknown=False):
     map_file_name = os.path.join(root_folder, "map.txt")
@@ -46,14 +44,12 @@ def create_map_file_from_folder(root_folder, class_mapping, include_unknown=Fals
 
     return map_file_name
 
-
 def create_class_mapping_from_folder(root_folder):
     classes = []
     for _, directories, _ in os.walk(root_folder):
         for directory in directories:
             classes.append(directory)
     return np.asarray(classes)
-
 
 def format_output_line(img_name, true_class, probs, class_mapping, top_n=3):
     class_probs = np.column_stack((probs, class_mapping)).tolist()
@@ -66,30 +62,28 @@ def format_output_line(img_name, true_class, probs, class_mapping, top_n=3):
     line = '%s}, "image": "%s"}]\n' % (line[:-2], img_name.replace('\\', '/'))
     return line
 
-
-if __name__ == '__main__':
-    try_set_default_device(gpu(0))
+def train_and_eval(_base_model_file, _train_image_folder, _test_image_folder, _results_file, _new_model_file, testing = False):
     # check for model and data existence
-    if not (os.path.exists(base_model_file) and os.path.exists(train_image_folder) and os.path.exists(test_image_folder)):
+    if not (os.path.exists(_base_model_file) and os.path.exists(_train_image_folder) and os.path.exists(_test_image_folder)):
         print("Please run 'python install_data_and_model.py' first to get the required data and model.")
         exit(0)
 
     # get class mapping and map files from train and test image folder
-    class_mapping = create_class_mapping_from_folder(train_image_folder)
-    train_map_file = create_map_file_from_folder(train_image_folder, class_mapping)
-    test_map_file = create_map_file_from_folder(test_image_folder, class_mapping, include_unknown=True)
+    class_mapping = create_class_mapping_from_folder(_train_image_folder)
+    train_map_file = create_map_file_from_folder(_train_image_folder, class_mapping)
+    test_map_file = create_map_file_from_folder(_test_image_folder, class_mapping, include_unknown=True)
 
     # train
-    trained_model = train_model(base_model_file, feature_node_name, last_hidden_node_name,
+    trained_model = train_model(_base_model_file, feature_node_name, last_hidden_node_name,
                                 image_width, image_height, num_channels,
                                 len(class_mapping), train_map_file, num_epochs=30, freeze=True)
-    trained_model.save(new_model_file)
-    print("Stored trained model at %s" % tl_model_file)
+
+    if not testing:
+        trained_model.save(_new_model_file)
+        print("Stored trained model at %s" % tl_model_file)
 
     # evaluate test images
-    # trained_model = load_model(new_model_file)
-    results_file = os.path.join(base_folder, "Output", "predictions.txt")
-    with open(results_file, 'w') as output_file:
+    with open(_results_file, 'w') as output_file:
         with open(test_map_file, "r") as input_file:
             for line in input_file:
                 tokens = line.rstrip().split('\t')
@@ -100,4 +94,11 @@ if __name__ == '__main__':
                 formatted_line = format_output_line(img_file, true_label, probs, class_mapping)
                 output_file.write(formatted_line)
 
-    print("Done. Wrote output to %s" % results_file)
+    print("Done. Wrote output to %s" % _results_file)
+
+if __name__ == '__main__':
+    try_set_default_device(gpu(0))
+
+    results_file = os.path.join(base_folder, "Output", "predictions.txt")
+    new_model_file = os.path.join(base_folder, "Output", "TransferLearning.model")
+    train_and_eval(base_model_file, train_image_folder, test_image_folder, results_file, new_model_file)
